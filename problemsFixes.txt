@@ -1,0 +1,7 @@
+
+	Problems/Fixes for issues during the development of sketch
+
+1.	Problem: All cContainer.cAttr elements in a cElem.cAttrs[] had the same id so the last one would over-ride all the others.
+	Reason: getNextId() was ignoring cContainer.cAttr instances when generating Id so it would generate the same Id for all of them.
+	Fix: Concatenated getNextId() and cAttrCount together to give cContainer.cAttr instances unique Ids.
+

@@ -1,0 +1,257 @@
+/*
+ * ext-helloworld.js
+ *
+ * Licensed under the Apache License, Version 2
+ *
+ * Copyright(c) 2010 Alexis Deveria
+ *
+ */
+ 
+/* 
+	This is a very basic SVG-Edit extension. It adds a "Hello World" button in
+	the left panel. Clicking on the button, and then the canvas will show the
+ 	user the point on the canvas that was clicked on.
+*/
+ 
+svgEditor.addExtension("Class", function() {
+
+	// Group: Communication
+
+
+	var socket = io.connect('http://localhost:8080');
+
+	socket.on('connect', function(){
+		alert('connected');
+	});
+
+	$("document").ready(function(){
+		var update = function(){
+			var canv = svgCanvas.svgCanvasToString();
+			socket.emit("updateRemoteDiag", canv);
+		}
+		//alert(canv);
+		//setInterval(update(), 500);
+	});
+
+
+	socket.on('updateLocalDiag', function(xmlString){
+		//alert(xmlString);
+		svgCanvas.clear();
+		svgCanvas.setSvgString(xmlString);
+	});
+
+
+		return {
+			name: "Class",
+			svgicons: "extensions/helloworld-icon.xml",
+			
+			buttons: [{
+				id: "hello_world", 
+				
+				type: "mode", 
+				
+				title: "Class", 
+				
+				events: {
+					'click': function() {
+						svgCanvas.setMode("hello_world");
+					}
+				}
+			}],
+
+			mouseDown: function(opts) {
+				
+				if(svgCanvas.getMode() == "hello_world") {
+
+					return {
+						started: true
+					}
+				}
+
+			},
+			
+			mouseUp: function(opts) {
+				if(svgCanvas.getMode() == "hello_world") {
+				
+					var zoom = svgCanvas.getZoom();
+					var x = opts.mouse_x / zoom;
+					var y = opts.mouse_y / zoom;
+//					alert(opts.mouse_x + " " + x + "\n" + opts.mouse_y + " " + y);
+
+					var classElem = function(){
+					
+
+						var classShape = svgCanvas.addSvgElementFromJson({
+							"element": "g",
+							"attr": {
+								"id": "cs_" + svgCanvas.getNextId(),
+								"class": "classShape",
+								"title": "Class"//,
+//								"transform": "translate(" + x + ", " + y + ")"
+							}
+						});
+												
+						var classTitleArea = classShape.appendChild(svgCanvas.addSvgElementFromJson({
+							"element": "rect",
+							"attr": {
+								"id": svgCanvas.getNextId(),
+								"width": "100",
+								"height": "20",
+								"fill": "white",
+								"x": x,
+								"y": y,
+								"stroke": "black",
+								"stroke-width": "1"
+							}
+						}));
+					
+						var classTitle = svgCanvas.addSvgElementFromJson({
+							"element": "text",
+							"attr": {
+								"id": svgCanvas.getNextId(),
+								"width": "100",
+								"height": "20",
+								"x": x + 28,
+								"y": y + 13,
+								"fill": "black"
+							}
+						});
+					
+						classTitle.textContent = "Class";					
+						classShape.appendChild(classTitle);
+
+
+						var classAttr = classShape.appendChild(svgCanvas.addSvgElementFromJson({
+							"element": "rect",
+							"attr": {
+								"id": svgCanvas.getNextId(),
+								"width": "100",
+								"height": "20",
+								"x": x,
+								"y": y + 20,
+								"fill": "white",
+								"stroke": "black",
+								"stroke-width": "1"
+							}
+						}));
+
+						var classOper = classShape.appendChild(svgCanvas.addSvgElementFromJson({
+							"element": "rect",
+							"attr": {
+								"id": svgCanvas.getNextId(),
+								"width": "100",
+								"height": "20",
+								"x": x,
+								"y": y + 40,
+								"fill": "white",
+								"stroke": "black",
+								"stroke-width": "1"
+							}
+						}));
+						
+
+						var attrBoxHeight = classAttr.height.baseVal.value;
+						var classAttrY = classAttr.getBBox().y;
+						var classOperY = classOper.getBBox().y;
+
+			
+						var line = classShape.appendChild(svgCanvas.addSvgElementFromJson({
+							"element": "text",
+							"attr": {
+								"id": svgCanvas.getNextId(),
+								"width": "100",
+								"height": "20",
+								"x": x + 6,
+								"y": classAttrY + 15,
+								"fill": "black"
+							}
+						}));
+			
+						line.textContent = "-attribute";
+	
+						var attrBtn = classShape.appendChild(svgCanvas.addSvgElementFromJson({
+							"element": "text",
+							"attr": {
+								"id": "attr_" + svgCanvas.getNextId(),
+								"width": "15",
+								"height": "15",
+								"x": x + 84,
+								"y": y + 35,
+								"fill": "green",
+								"stroke": "green",
+								"stroke-width": "0",
+								"font-size": "20"
+							}
+						}));
+						
+						attrBtn.textContent = "+";
+						attrBtn.setAttribute("style", "display:none;");
+						attrBtn.setAttribute("style", "z-index:10001;");
+						
+						$('g[id^="attr_svg_"]').bind('click', function(){
+							alert('hovered!');
+
+							//newLine(attr);
+							//svgCanvas.setMode('text');
+						});
+						
+						var showAttrBtn = function(){attrBtn.setAttribute("style", "display:inline");}
+
+						
+						$('g[id^="cs_svg_"]').bind('click', function(event){
+							//alert('hovered!');
+							var canv = svgCanvas.svgCanvasToString();
+
+							socket.emit('updateRemoteDiag', canv);
+							//setInterval(alert(printCanvas, 1000));
+							//alert(canv);
+							//newLine(attr);
+							//svgCanvas.setMode('text');
+						});
+						
+						$('g[id^="cs_svg_"]').bind('mouseover', function(){
+							//alert('hovered!');
+
+							attrBtn.setAttribute("style", "display:inline;");
+
+							//newLine(attr);
+							//svgCanvas.setMode('text');
+						});
+
+
+						$('g[id^="cs_svg_"]').bind('mouseout', function(){
+							//alert('hovered!');
+
+							attrBtn.setAttribute("style", "display:none;");
+
+							//newLine(attr);
+							//svgCanvas.setMode('text');
+						});
+
+						var printCanvas = svgCanvas.svgCanvasToString();
+						
+
+
+/*						classAttr.setAttribute("height", attrBoxHeight + 15);
+						classOper.setAttribute("y", classOperY + 15);
+						var sManager = new svgCanvas.SelectorManager();
+						sManager.requestSelector(line);
+						svgCanvas.textActions.select(line, line.getAttribute('x'), line.getAttribute('y'));
+						svgCanvas.textActions.toEditMode(line.getAttribute('x'), line.getAttribute('y'));
+*/					}
+					
+					
+					classElem();
+
+					//svgCanvas.selectMode('select');
+					
+					//classShape = none;
+				}
+				
+
+
+			}
+		};
+
+});
+
