@@ -54,17 +54,17 @@ svgEditor.addExtension("Class", function() {
 		//		alert(opts.cContainer.mouse_x + " " + x + "\n" + opts.cContainer.mouse_y + " " + y);
 
 //				newClass = new s.cContainer.cElem(x, y);
-				s.cContainer.cElems[counter] = new s.cContainer.cElem(x, y, counter);
+				s.cElems[counter] = new s.cElem(x, y, counter);
 				
-				s.cContainer.cElems[counter].newAttr();
+				s.cElems[counter].newAttr();
 				
 
-				s.cContainer.cElems[counter].newOper();
+				s.cElems[counter].newOper();
 
 				counter++;
 				
 				// This somehow fixes the issue of last child element of classes.cContainer. I have no idea why. Seems like some bug with the browser.
-				s.cContainer.cElem.getPosX();
+				s.cElem.getPosX();
 
 
 /*				alert(newClass.cContainer.getPosX());

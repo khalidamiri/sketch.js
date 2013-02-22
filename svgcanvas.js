@@ -10323,6 +10323,7 @@ this.getPrivateMethods = function() {
 	unit_types.em = bb.width;
 	unit_types.ex = bb.height;
 	svgcontent.removeChild(rect);
+	
 }());	
 
 }
